@@ -1,7 +1,5 @@
 package su.nightexpress.excellentcrates.crates.block.handler;
 
-import java.util.Comparator;
-
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.jspecify.annotations.NullMarked;
@@ -56,21 +54,18 @@ public class BlockInteractionHandler implements FeedbackHandler {
             return ActionResult.fail(HandlerResult.IGNORE);
         }
 
-        // Резолвим провайдера источника по его идентификатору
         BlockProvider sourceProvider = this.resolveService.getProvider(sourceId);
         if (sourceProvider == null) {
             return ActionResult.fail(HandlerResult.IGNORE);
         }
 
-        // Проверяем, есть ли более "сильный" провайдер для данной локации/блока
-        BlockProvider handlerCandidate = this.resolveService.getProviders()
+        // The event already identifies its source. Only higher-priority providers can override it.
+        boolean overridden = this.resolveService.getProviders()
             .stream()
-            .filter(provider -> provider.canHandle(location))
-            .max(Comparator.comparingInt(provider -> provider.getPriority()))
-            .orElse(null);
+            .filter(provider -> provider.getPriority() > sourceProvider.getPriority())
+            .anyMatch(provider -> provider.canHandle(location));
 
-        // Если более сильный кандидат найден и не совпадает с источником, игнорируем взаимодействие
-        if (handlerCandidate != null && !handlerCandidate.id().equals(sourceId)) {
+        if (overridden) {
             return ActionResult.fail(HandlerResult.IGNORE);
         }
 
