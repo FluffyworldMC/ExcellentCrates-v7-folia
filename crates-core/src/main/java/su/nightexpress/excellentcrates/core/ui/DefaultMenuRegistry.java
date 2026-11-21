@@ -9,8 +9,8 @@ import org.jspecify.annotations.NullMarked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import su.nightexpress.engine.scheduler.PluginScheduler;
 import su.nightexpress.engine.action.ActionResult;
+import su.nightexpress.engine.scheduler.PluginScheduler;
 import su.nightexpress.engine.ui.menu.MenuKey;
 import su.nightexpress.engine.ui.menu.MenuRegistry;
 import su.nightexpress.excellentcrates.core.lang.Lang;
@@ -47,8 +47,14 @@ public class DefaultMenuRegistry implements MenuRegistry {
         }
     }
 
-    @SuppressWarnings("unchecked")
+    @Override
     public <T> ActionResult show(Player player, MenuKey<T> key, T context) {
+        return this.show(player, key, context, 1);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> ActionResult show(Player player, MenuKey<T> key, T context, int page) {
         AbstractObjectMenu<T> menu = (AbstractObjectMenu<T>) this.byKey.get(key);
 
         if (menu == null) {
@@ -60,13 +66,13 @@ public class DefaultMenuRegistry implements MenuRegistry {
 
         if (!PluginScheduler.get().isEntityThread(player)) {
             PluginScheduler.runOnEntity(player, () -> {
-                if (!menu.show(player, context)) {
+                if (!menu.show(player, context, viewer -> viewer.setCurrentPage(page))) {
                     LOGGER.warn("Menu '{}' could not be opened for {}.", key.id(), player.getName());
                 }
             });
             return ActionResult.ok();
         }
 
-        return ActionResult.of(menu.show(player, context));
+        return ActionResult.of(menu.show(player, context, viewer -> viewer.setCurrentPage(page)));
     }
 }

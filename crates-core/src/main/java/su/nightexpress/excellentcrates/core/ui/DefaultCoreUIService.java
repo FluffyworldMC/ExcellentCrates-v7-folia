@@ -52,6 +52,11 @@ public class DefaultCoreUIService implements CoreUIService {
     }
 
     @Override
+    public <T> ActionResult openMenu(Player player, MenuKey<T> key, T context, int page) {
+        return this.menus.show(player, key, context, page);
+    }
+
+    @Override
     public <T> ActionResult showDialog(Player player, DialogKey<T> key, T context, @Nullable Runnable callback) {
         if (!PluginScheduler.get().isEntityThread(player)) {
             PluginScheduler.runOnEntity(player, () -> {
